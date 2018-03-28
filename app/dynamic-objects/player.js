@@ -21,7 +21,7 @@ export default class Player extends RenderedObject {
     let fromCell = this.oldCell
     let toCell = this.currentCell
     if (fromCell == null) fromCell = toCell
-    let path = this.gridLayer.getPath(fromCell, toCell)
+    let path = this.scene.findPath(fromCell, toCell)
     if (path.length === 0) this.currentCell = this.oldCell
     for (let nextCell of path) {
       // fromCell.isEmpty = true
