@@ -1,3 +1,6 @@
+import { next, nextFrame } from '../../lib/utils';
+import { bind } from '../../lib/decorators';
+
 import { AbstractScene } from './';
 import {
   BackgroundLayer,
@@ -10,18 +13,12 @@ import {
 import { Wall } from '../static-objects';
 import { Player } from '../dynamic-objects';
 
-const asyncRequestAnimationFrame = async (cb) => {
-  await new Promise((resolve) => {
-    requestAnimationFrame(async () => {
-      await cb();
-      resolve();
-    })
-  })
-}
-
 export default class MainScene extends AbstractScene {
+  layers = new Map();
+  width = 640;
+  height = 320;
 
-  get background() {
+  get backgroundSprite() {
     const canvas = new OffscreenCanvas(this.width, this.height);
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = "hsla(28, 87%, 67%, 1)";
@@ -29,23 +26,45 @@ export default class MainScene extends AbstractScene {
     return canvas.transferToImageBitmap();
   }
 
+  get wallSprite() {
+    if (this._wallSprite == null) {
+      const canvas = new OffscreenCanvas(20, 20);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'red';
+      ctx.fillRect(0, 0, 20, 20);
+      this._wallSprite = canvas.transferToImageBitmap();
+    }
+    return this._wallSprite;
+  }
+
+  get playerSprite() {
+    if (this._playerSprite == null) {
+      const canvas = new OffscreenCanvas(15, 15);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'green';
+      ctx.fillRect(0, 0, 15, 15);
+      this._playerSprite = canvas.transferToImageBitmap();
+    }
+    return this._playerSprite;
+  }
+
+  @bind
   async _init() {
-    await this._applyStyles();
+    nextFrame(this._applyStyles);
     await this._initLayers();
     await this._prerender();
   }
 
-  async _applyStyles() {
-    await asyncRequestAnimationFrame(() => {
-      this.style.position = `relative`;
-      this.style.width = `${this.width}px`;
-      this.style.height = `${this.height}px`;
-    });
+  @bind
+  _applyStyles() {
+    this.style.position = `relative`;
+    this.style.width = `${this.width}px`;
+    this.style.height = `${this.height}px`;
   }
 
   async _initLayers() {
     this.notReadyLayerCount = 0;
-    this._createLayer('Background', BackgroundLayer, this, this.width, this.height, this.background);
+    this._createLayer('Background', BackgroundLayer, this, this.width, this.height, this.backgroundSprite);
     this._createLayer('Grid', GridLayer, this, this.width, this.height, {
       width: 30,
       border: 1,
@@ -79,30 +98,30 @@ export default class MainScene extends AbstractScene {
     const staticLayer = this.layers.get('StaticObjects');
     const dynamicLayer = this.layers.get('DynamicObjects');
     for (let i = 0; i < 10; ++i) {
-      dynamicLayer.connectObject(new Wall(this, 20, 20, null, gridLayer.getCell(i,9), gridLayer));
+      dynamicLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [this.wallSprite], gridLayer.getCell(i,9)));
     }
 
-    const player = new Player(this, 15, 15, null, gridLayer.getCell(5,5), gridLayer);
+    const player = new Player(this, {x: 'center', y: 'center'}, [this.playerSprite], gridLayer.getCell(5,5));
     dynamicLayer.connectObject(player);
+  }
+
+  async _render() {
+    for (const [_, layer] of this.layers) {
+      layer.render();
+    }
   }
 
   constructor() {
     super();
-    this.layers = new Map();
-    this.width = 640;
-    this.height = 320;
-    setTimeout(this._init());
+    next(this._init);
   }
 
   run() {
-    this.render();
+    this._render();
   }
 
-  async render() {
-    for (const [_, layer] of this.layers) {
-      layer.render();
-    }
-    requestAnimationFrame(this.render.bind(this));
+  update() {
+    this._render();
   }
 
   findPath(from, to) {

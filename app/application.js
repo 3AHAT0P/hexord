@@ -1,21 +1,27 @@
-import { EventEmitter } from '../lib'
+import { EventEmitter } from '../lib';
+import { next } from '../lib/utils';
+import { bind } from '../lib/decorators';
 
-import { GameController } from './'
+import { GameController } from './';
 
 export default class Application {
-  constructor() {
-    setTimeout(this.init.bind(this));
-    window[Symbol.for('app')] = this;
-  }
 
-  init() {
-    this.services = new Map();
+  services = new Map();
+
+  @bind
+  _init() {
     this.services.set('DOMService', document);
     this.services.set('EventEmitter', new EventEmitter());
     this.services.set('GameController', new GameController());
-    setTimeout(this.startGame.bind(this))
+    next(this.startGame);
   }
 
+  constructor() {
+    window[Symbol.for('app')] = this;
+    next(this._init);
+  }
+
+  @bind
   startGame() {
     this.services.get('GameController').start();
   }

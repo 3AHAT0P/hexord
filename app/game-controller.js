@@ -1,33 +1,46 @@
-import { MainScene } from './scenes'
+import { inject, next, nextFrame } from '../lib/utils';
+import { bind } from '../lib/decorators';
 
-import { inject } from '../lib/utils'
+import { MainScene } from './scenes';
 
 export default class GameController {
-  constructor() {
-    setTimeout(this.init.bind(this));
-    this.gameIsStarted = false;
-  }
+  gameIsStarted = false;
 
-  initInjects() {
-    this.dom = inject('DOMService');
-  }
-
-  init() {
-    this.initInjects();
+  @bind
+  _init() {
+    this._initInjections();
     // this.activeScene = new MainScene();
     this.activeSceneIsReady = false;
     this.activeScene = this.dom.createElement('main-scene');
-    this.activeScene.on('ready', () => {
-      this.activeSceneIsReady = true;
-      this.runScene();
-    })
-    this.dom.body.append(this.activeScene)
+    this.activeScene.on('ready', this._activeSceneOnReady);
+    this.dom.body.append(this.activeScene);
   }
 
-  runScene(waitSceneReadyState = false) {
+  _initInjections() {
+    this.dom = inject('DOMService');
+  }
+
+  @bind
+  _activeSceneOnReady() {
+    this.activeSceneIsReady = true;
+    this.runScene();
+  }
+
+  constructor() {
+    next(this._init);
+  }
+
+  runScene() {
     if (this.gameIsStarted && this.activeSceneIsReady) {
       this.activeScene.run();
+      nextFrame(this.updateScene);
     }
+  }
+
+  @bind
+  updateScene() {
+    this.activeScene.update();
+    nextFrame(this.updateScene);
   }
 
   start() {
