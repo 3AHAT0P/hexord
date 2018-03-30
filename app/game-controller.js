@@ -3,6 +3,8 @@ import { bind } from '../lib/decorators';
 
 import { MainScene } from './scenes';
 
+MainScene._register();
+
 export default class GameController {
   gameIsStarted = false;
 

@@ -1,4 +1,4 @@
-import { inject, next, nextFrame } from '../lib/utils';
+import { next } from '../lib/utils';
 import { bind } from '../lib/decorators';
 
 export default class RenderedObject {
@@ -6,42 +6,42 @@ export default class RenderedObject {
   @bind
   _init() {}
 
-  _buildCoordinates() {
+  _buildCoordinates(cell) {
     let x = 0;
     let y = 0;
     if (this.positionX.constructor.name === 'String') {
       switch (this.positionX) {
         case 'top':
-          x = this.cell.getPositionX('top');
+          x = cell.getPositionX('top');
           break;
         case 'center':
-          x = this.cell.getPositionX('center') - this.width / 2;
+          x = cell.getPositionX('center') - this.width / 2;
           break;
         case 'bottom':
-          x = this.cell.getPositionX('bottom') - this.width;
+          x = cell.getPositionX('bottom') - this.width;
           break;
       }
     } else if (this.positionX.constructor.name === 'Number') {
-      x = this.cell.getPositionX('top') + this.positionX;
+      x = cell.getPositionX('top') + this.positionX;
     } else {
-      x = this.cell.getPositionX('top');
+      x = cell.getPositionX('top');
     }
     if (this.positionY.constructor.name === 'String') {
       switch (this.positionY) {
         case 'left':
-          y = this.cell.getPositionY('left');
+          y = cell.getPositionY('left');
           break;
         case 'center':
-          y = this.cell.getPositionY('center') - this.height / 2;
+          y = cell.getPositionY('center') - this.height / 2;
           break;
         case 'bottom':
-          y = this.cell.getPositionY('right') - this.height;
+          y = cell.getPositionY('right') - this.height;
           break;
       }
     } else if (this.positionY.constructor.name === 'Number') {
-      y = this.cell.getPositionY('left') + this.positionY;
+      y = cell.getPositionY('left') + this.positionY;
     } else {
-      y = this.cell.getPositionY('left');
+      y = cell.getPositionY('left');
     }
     return [x, y];
   }
@@ -61,11 +61,11 @@ export default class RenderedObject {
   }
 
   render(ctx) {
-    this.draw(ctx, ...this._buildCoordinates(), this.sprites[0]);
+    this.draw(ctx, ...this._buildCoordinates(this.cell), this.sprites[0]);
     this.needRender = false;
   }
 
-  draw(ctx, x, y, sprite, options = {}) {
+  draw(ctx, x, y, sprite) {
     ctx.drawImage(sprite, x, y);
   }
 }

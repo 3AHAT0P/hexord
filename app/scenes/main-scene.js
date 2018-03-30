@@ -21,7 +21,7 @@ export default class MainScene extends AbstractScene {
   get backgroundSprite() {
     const canvas = new OffscreenCanvas(this.width, this.height);
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = "hsla(28, 87%, 67%, 1)";
+    ctx.fillStyle = 'hsla(28, 87%, 67%, 1)';
     ctx.fillRect(0, 0, this.width, this.height);
     return canvas.transferToImageBitmap();
   }
@@ -48,6 +48,10 @@ export default class MainScene extends AbstractScene {
     return this._playerSprite;
   }
 
+  static _register() {
+    customElements.define('main-scene', this);
+  }
+
   @bind
   async _init() {
     nextFrame(this._applyStyles);
@@ -57,7 +61,7 @@ export default class MainScene extends AbstractScene {
 
   @bind
   _applyStyles() {
-    this.style.position = `relative`;
+    this.style.position = 'relative';
     this.style.width = `${this.width}px`;
     this.style.height = `${this.height}px`;
   }
@@ -86,7 +90,7 @@ export default class MainScene extends AbstractScene {
 
   _layerReady() {
     if (--this.notReadyLayerCount === 0) {
-      for (const [_, layer] of this.layers) {
+      for (const [, layer] of this.layers) {
         this.append(layer.element);
       }
       this.emit('ready');
@@ -98,7 +102,7 @@ export default class MainScene extends AbstractScene {
     const staticLayer = this.layers.get('StaticObjects');
     const dynamicLayer = this.layers.get('DynamicObjects');
     for (let i = 0; i < 10; ++i) {
-      dynamicLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [this.wallSprite], gridLayer.getCell(i,9)));
+      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [this.wallSprite], gridLayer.getCell(i,9)));
     }
 
     const player = new Player(this, {x: 'center', y: 'center'}, [this.playerSprite], gridLayer.getCell(5,5));
@@ -106,7 +110,7 @@ export default class MainScene extends AbstractScene {
   }
 
   async _render() {
-    for (const [_, layer] of this.layers) {
+    for (const [, layer] of this.layers) {
       layer.render();
     }
   }
@@ -128,5 +132,3 @@ export default class MainScene extends AbstractScene {
     return this.layers.get('Grid').getPath(from, to);
   }
 }
-
-customElements.define('main-scene', MainScene);
