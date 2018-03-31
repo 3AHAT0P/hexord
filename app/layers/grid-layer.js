@@ -1,111 +1,129 @@
-import { AbstractLayer } from './'
-import { HexCell } from '../cells'
-import { MappedPriorityQueue } from '../../lib'
+import { MappedPriorityQueue } from '../../lib';
+import { bind } from '../../lib/decorators';
+
+import { AbstractLayer } from './';
+import { HexCell } from '../cells';
 
 export default class GridLayer extends AbstractLayer {
   constructor(scene, width, height, cellOptions) {
-    super(scene, width, height)
-    this.cellOptions = cellOptions
-    this.cellOptions.edgeLength = Math.sqrt(this.cellOptions.width*this.cellOptions.width/3)
-    this.cellOptions.height = this.cellOptions.edgeLength*2 + 2*this.cellOptions.border
+    super(scene, width, height);
+    this.cellOptions = cellOptions;
+    this.cellOptions.edgeLength = Math.sqrt(this.cellOptions.width*this.cellOptions.width/3);
+    this.cellOptions.height = this.cellOptions.edgeLength*2 + 2*this.cellOptions.border;
 
-    this.hoveredCell = null
-    this.activeCell = null
-    this.rowHeight = this.cellOptions.edgeLength*3/2
-    this.oddRowOffset = -this.cellOptions.width/2
-    this.rowCount = Math.trunc(height/this.rowHeight) + 2
-    this.columnCount = Math.trunc(width/this.cellOptions.width) + 2
-    this.cells = []
-    this.generateCells()
-    this.firstRender = true
-    this.scene.on('mousemove', this.onMouseMove.bind(this))
-    this.scene.on('mousedown', this.onMouseDown.bind(this))
+    this.hoveredCell = null;
+    this.activeCell = null;
+    this.rowHeight = this.cellOptions.edgeLength*3/2;
+    this.oddRowOffset = -this.cellOptions.width/2;
+    this.rowCount = Math.trunc(height/this.rowHeight) + -1;
+    this.columnCount = Math.trunc(width/this.cellOptions.width) - 1;
+    this.cells = [];
+    this.generateCells();
+    this.firstRender = true;
+    this.scene.on('mousemove', this.onMouseMove);
+    this.scene.on('mousedown', this.onMouseDown);
   }
 
   generateCells() {
     for (let rowId = 0; rowId < this.rowCount; ++rowId) {
       for (let columnId = 0; columnId < this.columnCount; ++columnId) {
-        let y = rowId * this.rowHeight
-        let x = columnId * this.cellOptions.width + (rowId % 2) * this.oddRowOffset
-        this.cells.push(this.cells[`${rowId}:${columnId}`] = new HexCell(rowId, columnId, {x, y}, this.cellOptions, this))
+        let y = rowId * this.rowHeight;
+        let x = columnId * this.cellOptions.width + (rowId % 2) * this.oddRowOffset;
+        this.cells.push(this.cells[`${rowId}:${columnId}`] = new HexCell(rowId, columnId, {x, y}, this.cellOptions, this));
       }
     }
   }
 
+  @bind
   onMouseMove(e) {
-    let currentCell = this.getCellFromPoint(e.layerX, e.layerY)
-    if (this.hoveredCell === currentCell) return
-    if (currentCell != null) currentCell.hover()
+    let currentCell = this.getCellFromPoint(e.layerX, e.layerY);
+    if (this.hoveredCell === currentCell) return;
+    if (currentCell != null) currentCell.hover();
 
-    if (this.hoveredCell != null) this.hoveredCell.hover(false)
-    this.hoveredCell = currentCell
+    if (this.hoveredCell != null) this.hoveredCell.hover(false);
+    this.hoveredCell = currentCell;
   }
 
+  @bind
   onMouseDown(e) {
-    let cell = this.getCellFromPoint(e.layerX, e.layerY)
-    this.scene.emit('cellClicked', cell)
+    let cell = this.getCellFromPoint(e.layerX, e.layerY);
+    this.scene.emit('cellClicked', cell);
   }
 
   getCellFromPoint(x, y) {
-    let index = Math.trunc(x*2/this.cellOptions.width) + 1
-    let rowId = Math.trunc(y/this.rowHeight)
-    let dy = rowId * this.rowHeight
-    let fx = 0
+    let index = Math.trunc(x*2/this.cellOptions.width) + 1;
+    let rowId = Math.trunc(y/this.rowHeight);
+    let dy = rowId * this.rowHeight;
+    let fx = 0;
     // f(x) = y = ax + b; b = dy + c
-    let a = this.cellOptions.edgeLength / this.cellOptions.width
-    let sign  = Math.pow(-1, index) //(1 - 2*(index%2))
+    let a = this.cellOptions.edgeLength / this.cellOptions.width;
+    let sign  = Math.pow(-1, index); // (1 - 2*(index%2))
     if (rowId % 2 === 0) {
-      sign  = -sign //(-1 + 2*(index%2))
-      let c = Math.ceil(index/2 - 1) * this.cellOptions.edgeLength + this.cellOptions.edgeLength/2
-      fx = dy + (c - a * x) * sign
+      sign  = -sign; // (-1 + 2*(index%2))
+      let c = Math.ceil(index/2 - 1) * this.cellOptions.edgeLength + this.cellOptions.edgeLength/2;
+      fx = dy + (c - a * x) * sign;
     } else {
-      let c = Math.floor(index/2) * this.cellOptions.edgeLength
-      fx = dy + (c - a * x) * sign
+      let c = Math.floor(index/2) * this.cellOptions.edgeLength;
+      fx = dy + (c - a * x) * sign;
     }
 
-    if (y < fx) --rowId
+    if (y < fx) --rowId;
 
-    let columnId = -1
+    let columnId = -1;
     if (rowId % 2 === 1)
-      columnId = Math.trunc((x - this.oddRowOffset)/this.cellOptions.width)
+      columnId = Math.trunc((x - this.oddRowOffset)/this.cellOptions.width);
     else
-      columnId = Math.trunc(x/this.cellOptions.width)
-    return this.getCell(rowId, columnId)
+      columnId = Math.trunc(x/this.cellOptions.width);
+    return this.getCell(rowId, columnId);
   }
   getCell(rowId, columnId) {
-    return this.cells[`${rowId}:${columnId}`]
+    return this.cells[`${rowId}:${columnId}`];
   }
   render() {
     for (let cell of this.cells) {
       if (cell.needRender) {
-        cell.render(this.ctx)
+        cell.render(this.ctx);
       }
     }
   }
 
+  getNearblyCells(cell, type = 'all') {
+    const pathPoint = this.buildPathPoint(cell.rowId, cell.columnId, null);
+    return this.getNeighbor(pathPoint).reduce(
+      (result, [neighborRowId, neighborColumnId]) => {
+        const cell = this.getCell(neighborRowId, neighborColumnId);
+        if (type === 'all') result.push(cell);
+        else if (type === 'empty' && cell.isEmpty) result.push(cell);
+        else if (type === 'notempty' && !cell.isEmpty) result.push(cell);
+        return result;
+      },
+      []
+    );
+  }
+
   getNeighbor(point) {
-    let res = []
-    let prevRowId = point.rowId - 1
-    let nextRowId = point.rowId + 1
-    let prevColumnId = point.columnId - point.rowId%2
-    let nextColumnId = point.columnId + Number(point.rowId%2 === 0)
+    let res = [];
+    let prevRowId = point.rowId - 1;
+    let nextRowId = point.rowId + 1;
+    let prevColumnId = point.columnId - point.rowId%2;
+    let nextColumnId = point.columnId + Number(point.rowId%2 === 0);
     if (prevRowId >= 0) {
       if (prevColumnId >= 0)
-        res.push([prevRowId, prevColumnId])
+        res.push([prevRowId, prevColumnId]);
       if (nextColumnId < this.columnCount)
-        res.push([prevRowId, nextColumnId])
+        res.push([prevRowId, nextColumnId]);
     }
     if (point.columnId + 1 < this.columnCount)
-      res.push([point.rowId,     point.columnId + 1])
+      res.push([point.rowId,     point.columnId + 1]);
     if (nextRowId < this.rowCount) {
       if (nextColumnId < this.columnCount)
-        res.push([nextRowId, nextColumnId])
+        res.push([nextRowId, nextColumnId]);
       if (prevColumnId >= 0)
-        res.push([nextRowId, prevColumnId])
+        res.push([nextRowId, prevColumnId]);
     }
     if (point.columnId - 1 >= 0)
-      res.push([point.rowId,     point.columnId - 1])
-    return res
+      res.push([point.rowId,     point.columnId - 1]);
+    return res;
   }
 
   heuristicEstimate(currentPoint, toPoint) {
@@ -175,7 +193,7 @@ export default class GridLayer extends AbstractLayer {
     // return res
 
     // WTF How it's work???
-    return 1
+    return 1;
   }
 
   buildPathPoint(rowId, columnId, prev) {
@@ -187,50 +205,52 @@ export default class GridLayer extends AbstractLayer {
       g: prev ? prev.g + 1 : 0,
       h: null,
       f: null
-    }
-    return pathPoint
+    };
+    return pathPoint;
   }
 
   buildPath(point) {
-    let res = [this.getCell(point.rowId, point.columnId)]
+    let res = [this.getCell(point.rowId, point.columnId)];
 
     while ((point = point.prev) != null)
-      res.unshift(this.getCell(point.rowId, point.columnId))
+      res.unshift(this.getCell(point.rowId, point.columnId));
 
-    return res
+    res.shift();
+
+    return res;
   }
 
   getPath(fromCell, toCell) {
-    let openedPathPoints = new MappedPriorityQueue()
-    let closedPathPoints = new MappedPriorityQueue()
-    let pathPoint = this.buildPathPoint(fromCell.rowId, fromCell.columnId, null)
-    pathPoint.h = this.heuristicEstimate(pathPoint, toCell)
-    pathPoint.f = pathPoint.g + pathPoint.h
-    openedPathPoints.add(pathPoint.f, pathPoint)
+    let openedPathPoints = new MappedPriorityQueue();
+    let closedPathPoints = new MappedPriorityQueue();
+    let pathPoint = this.buildPathPoint(fromCell.rowId, fromCell.columnId, null);
+    pathPoint.h = this.heuristicEstimate(pathPoint, toCell);
+    pathPoint.f = pathPoint.g + pathPoint.h;
+    openedPathPoints.add(pathPoint.f, pathPoint);
     while ((pathPoint = openedPathPoints.getMin()) != null) {
       if (pathPoint.rowId === toCell.rowId && pathPoint.columnId === toCell.columnId) {
-        return this.buildPath(pathPoint)
+        return this.buildPath(pathPoint);
       }
       for (const [neighborRowId, neighborColumnId] of this.getNeighbor(pathPoint)) {
-        if (!this.getCell(neighborRowId, neighborColumnId).isEmpty) continue
-        let neighborId = `${neighborRowId}:${neighborColumnId}`
-        let neighborPoint = openedPathPoints.getById(neighborId) || closedPathPoints.getById(neighborId)
+        if (!this.getCell(neighborRowId, neighborColumnId).isEmpty) continue;
+        let neighborId = `${neighborRowId}:${neighborColumnId}`;
+        let neighborPoint = openedPathPoints.getById(neighborId) || closedPathPoints.getById(neighborId);
         if (neighborPoint == null) {
-          neighborPoint = this.buildPathPoint(neighborRowId, neighborColumnId, pathPoint)
-          neighborPoint.h = this.heuristicEstimate(neighborPoint, toCell)
+          neighborPoint = this.buildPathPoint(neighborRowId, neighborColumnId, pathPoint);
+          neighborPoint.h = this.heuristicEstimate(neighborPoint, toCell);
         } else {
-          if (neighborPoint.g <= pathPoint.g + 1) continue
-          else neighborPoint.g = pathPoint.g + 1
+          if (neighborPoint.g <= pathPoint.g + 1) continue;
+          else neighborPoint.g = pathPoint.g + 1;
         }
         // if (!this.getCell(neighborRowId, neighborColumnId).isEmpty)
         //   neighborPoint.g = Infinity
 
-        neighborPoint.f = neighborPoint.g + neighborPoint.h
-        if (closedPathPoints.has(neighborId)) closedPathPoints.removeById(neighborId)
-        if (!openedPathPoints.has(neighborId)) openedPathPoints.add(neighborPoint.f, neighborPoint)
+        neighborPoint.f = neighborPoint.g + neighborPoint.h;
+        if (closedPathPoints.has(neighborId)) closedPathPoints.removeById(neighborId);
+        if (!openedPathPoints.has(neighborId)) openedPathPoints.add(neighborPoint.f, neighborPoint);
       }
-      closedPathPoints.add(pathPoint.f, pathPoint)
+      closedPathPoints.add(pathPoint.f, pathPoint);
     }
-    return []
+    return [];
   }
 }

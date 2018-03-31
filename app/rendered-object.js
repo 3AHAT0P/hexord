@@ -2,6 +2,7 @@ import { next } from '../lib/utils';
 import { bind } from '../lib/decorators';
 
 export default class RenderedObject {
+  needRender = true;
 
   @bind
   _init() {}
@@ -56,7 +57,6 @@ export default class RenderedObject {
     this.height = sprites[0].height;
     this.cell = cell;
 
-    this.needRender = true;
     next(this._init);
   }
 
