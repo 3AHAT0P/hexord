@@ -7,7 +7,7 @@ export default class AiActor extends AbsctractDynamicObject {
 
   @bind
   _init() {
-    setInterval(this.walk, 100);
+    setInterval(this.walk, 500);
   }
 
   @bind
