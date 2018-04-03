@@ -67,6 +67,31 @@ export default class MainScene extends AbstractScene {
     return this._aiActorSprite;
   }
 
+  get aiActorClearSprite() {
+    if (this._aiActorClearSprite == null) {
+      // const canvas = new OffscreenCanvas(15, 15);
+      // const ctx = canvas.getContext('2d');
+      // ctx.fillStyle = 'blue';
+      // ctx.fillRect(0, 0, 15, 15);
+      // this._aiActorSprite = canvas.transferToImageBitmap();
+      this._aiActorClearSprite = this.loadSprite('/assets/images/wolf-clear.png');
+    }
+    return this._aiActorClearSprite;
+  }
+
+  async buildClearSprite({width, height}) {
+    const canvas = new OffscreenCanvas(width + 4, height + 4);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'hsla(255, 100%, 100%, 1)';
+    ctx.fillRect(0, 0, width + 4, height + 4);
+    return canvas.transferToImageBitmap();
+  }
+
+
+  async getLevelMap(level = 1) {
+    return (await fetch(`/assets/levels/${level}.map.json`)).json();
+  }
+
   static _register() {
     customElements.define('main-scene', this);
   }
@@ -121,59 +146,87 @@ export default class MainScene extends AbstractScene {
     const staticLayer = this.layers.get('StaticObjects');
     const dynamicLayer = this.layers.get('DynamicObjects');
 
-    const wallSprite = await this.wallSprite;
-    const playerSprite = await this.playerSprite;
-    const wolfSprite = await this.aiActorSprite;
+    const wallSpritesHash = {
+      main: await this.wallSprite,
+      clear: await this.wallSprite
+    };
 
-    for (let i = 0; i < 10; ++i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(i,9)));
-    }
-    for (let i = 10; i < 19; ++i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(9,i)));
-    }
-    for (let i = 9; i > 0; --i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(i,18)));
-    }
-    for (let i = 17; i > 10; --i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(1,i)));
-    }
-    for (let i = 2; i < 8; ++i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(i,11)));
-    }
-    for (let i = 11; i < 17; ++i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(7,i)));
-    }
-    for (let i = 6; i > 2; --i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(i,16)));
-    }
-    for (let i = 15; i > 12; --i) {
-      staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(3,i)));
+    const playerSpritesHash = {
+      main: await this.playerSprite,
+      clear: await this.buildClearSprite(await this.playerSprite)
+    };
+
+    const wolfSpritesHash = {
+      main: await this.aiActorSprite,
+      clear: await this.buildClearSprite(await this.aiActorSprite)
+    };
+
+    const firstLevelMap = await this.getLevelMap();
+
+    for (let i = 0; i < firstLevelMap.length; ++i) {
+      const row = firstLevelMap[i];
+      for (let j = 0; j < row.length; ++j) {
+        const cell = row[j];
+        if (cell === 'w') {
+          staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,j)));
+        } else if (cell === 'p') {
+          const player = new Player(this, {x: 'center', y: 'center'}, playerSpritesHash, gridLayer.getCell(i,j));
+          dynamicLayer.connectObject(player);
+        } else if (cell === 'a') {
+          dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(i, j)));
+        }
+      }
     }
 
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(4, 13)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(4, 14)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(4, 15)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(5, 13)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(5, 14)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(5, 15)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(6, 12)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(6, 13)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(6, 14)));
-    staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, [wallSprite], gridLayer.getCell(6, 15)));
+    // for (let i = 0; i < 10; ++i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,9)));
+    // }
+    // for (let i = 10; i < 19; ++i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(9,i)));
+    // }
+    // for (let i = 9; i > 0; --i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,18)));
+    // }
+    // for (let i = 17; i > 10; --i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(1,i)));
+    // }
+    // for (let i = 2; i < 8; ++i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,11)));
+    // }
+    // for (let i = 11; i < 17; ++i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(7,i)));
+    // }
+    // for (let i = 6; i > 2; --i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,16)));
+    // }
+    // for (let i = 15; i > 12; --i) {
+    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(3,i)));
+    // }
+    //
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(4, 13)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(4, 14)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(4, 15)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(5, 13)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(5, 14)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(5, 15)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 12)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 13)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 14)));
+    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 15)));
 
-    const player = new Player(this, {x: 'center', y: 'center'}, [playerSprite], gridLayer.getCell(5,5));
-    dynamicLayer.connectObject(player);
-
-    dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(5,12)));
-    dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(2,16)));
-    dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(7,17)));
-    dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(6,10)));
-    dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(7,10)));
-    dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(2,10)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(4,4)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(4,5)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(6,4)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, [wolfSprite], gridLayer.getCell(6,5)));
+    // const player = new Player(this, {x: 'center', y: 'center'}, playerSpritesHash, gridLayer.getCell(5,5));
+    // dynamicLayer.connectObject(player);
+    //
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(5,12)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(2,16)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(7,17)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(6,10)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(7,10)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(2,10)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(4,4)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(4,5)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(6,4)));
+    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(6,5)));
   }
 
   async _render() {

@@ -12,14 +12,15 @@ export default class RenderedObject {
     let y = 0;
     if (this.positionX.constructor.name === 'String') {
       switch (this.positionX) {
-        case 'top':
-          x = cell.getPositionX('top');
+        case 'left':
+          x = cell.getPositionX('left');
           break;
         case 'center':
+          // if (this.width > cell.width) {}
           x = cell.getPositionX('center') - this.width / 2;
           break;
-        case 'bottom':
-          x = cell.getPositionX('bottom') - this.width;
+        case 'right':
+          x = cell.getPositionX('right') - this.width;
           break;
       }
     } else if (this.positionX.constructor.name === 'Number') {
@@ -29,14 +30,18 @@ export default class RenderedObject {
     }
     if (this.positionY.constructor.name === 'String') {
       switch (this.positionY) {
-        case 'left':
-          y = cell.getPositionY('left');
+        case 'top':
+          y = cell.getPositionY('top');
           break;
         case 'center':
-          y = cell.getPositionY('center') - this.height / 2;
+          if (this.height > cell.height) {
+            y = cell.getPositionY('center') - this.height + cell.height/8;
+          } else {
+            y = cell.getPositionY('center') - this.height / 2;
+          }
           break;
         case 'bottom':
-          y = cell.getPositionY('right') - this.height;
+          y = cell.getPositionY('bottom') - this.height;
           break;
       }
     } else if (this.positionY.constructor.name === 'Number') {
@@ -53,15 +58,15 @@ export default class RenderedObject {
     this.positionX = x;
     this.positionY = y;
     this.sprites = sprites;
-    this.width = sprites[0].width;
-    this.height = sprites[0].height;
+    this.width = sprites.main.width;
+    this.height = sprites.main.height;
     this.cell = cell;
 
     next(this._init);
   }
 
   render(ctx) {
-    this.draw(ctx, ...this._buildCoordinates(this.cell), this.sprites[0]);
+    this.draw(ctx, ...this._buildCoordinates(this.cell), this.sprites.main);
     this.needRender = false;
   }
 

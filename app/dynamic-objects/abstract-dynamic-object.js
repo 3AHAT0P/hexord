@@ -24,12 +24,12 @@ export default class AbsctractDynamicObject extends RenderedObject {
         this.clear(ctx, {x, y});
         x += dX;
         y += dY;
-        this.draw(ctx, x, y, this.sprites[0]);
+        this.draw(ctx, x, y, this.sprites.main);
         yield;
       }
     }
     this.clear(ctx, {x, y});
-    this.draw(ctx, endX, endY, this.sprites[0]);
+    this.draw(ctx, endX, endY, this.sprites.main);
     yield;
   }
 
@@ -39,24 +39,31 @@ export default class AbsctractDynamicObject extends RenderedObject {
     let toCell = this.cell;
 
     if (fromCell == null) {
-      toCell.isEmpty = false;
+      this.enter(toCell);
       yield* this.animate(ctx, toCell, toCell, 0);
     } else {
       const path = this.scene.findPath(fromCell, toCell);
       if (path.length === 0) this.cell = this.oldCell;
       for (const nextCell of path) {
-        if (!nextCell.isEmpty) {
+        if (!this.enter(nextCell)) {
           this.cell = fromCell;
           break;
         }
-        fromCell.isEmpty = true;
-        nextCell.isEmpty = false;
+        this.leave(fromCell);
         yield* this.animate(ctx, fromCell, nextCell, 4);
         fromCell = nextCell;
       }
     }
     this.needRender = false;
     this.__moveLock = false;
+  }
+
+  enter(cell) {
+    return cell.enter(this);
+  }
+
+  leave(cell) {
+    return cell.leave(this);
   }
 
   render(ctx) {
@@ -69,7 +76,7 @@ export default class AbsctractDynamicObject extends RenderedObject {
   clear(ctx, {x, y} = {}) {
     if (x == null || y == null) return;
     ctx.globalCompositeOperation = 'destination-out';
-    this.draw(ctx, x, y, this.sprites[0]);
+    this.draw(ctx, x-2, y-2, this.sprites.clear || this.sprites.main);
     ctx.globalCompositeOperation = 'source-over';
   }
 }
