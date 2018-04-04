@@ -1,1 +1,1 @@
-export Wall from './wall'
+export Wall from './wall';

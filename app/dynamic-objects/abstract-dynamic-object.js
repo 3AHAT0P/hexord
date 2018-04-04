@@ -30,7 +30,6 @@ export default class AbsctractDynamicObject extends RenderedObject {
     }
     this.clear(ctx, {x, y});
     this.draw(ctx, endX, endY, this.sprites.main);
-    yield;
   }
 
   *moveGeneratorFactory(ctx) {
@@ -67,6 +66,11 @@ export default class AbsctractDynamicObject extends RenderedObject {
   }
 
   render(ctx) {
+    if (!this.needRender) {
+      this.clear(ctx, ...this._buildCoordinates(this.cell));
+      this.draw(ctx, ...this._buildCoordinates(this.cell), this.sprites.main);
+      return;
+    }
     if (this.moveGenerator == null)
       this.moveGenerator = this.moveGeneratorFactory(ctx);
     const {done} = this.moveGenerator.next();
@@ -74,9 +78,9 @@ export default class AbsctractDynamicObject extends RenderedObject {
   }
 
   clear(ctx, {x, y} = {}) {
-    if (x == null || y == null) return;
-    ctx.globalCompositeOperation = 'destination-out';
-    this.draw(ctx, x-2, y-2, this.sprites.clear || this.sprites.main);
-    ctx.globalCompositeOperation = 'source-over';
+    // if (x == null || y == null) return;
+    // ctx.globalCompositeOperation = 'destination-out';
+    // this.draw(ctx, x-2, y-2, this.sprites.clear || this.sprites.main);
+    // ctx.globalCompositeOperation = 'source-over';
   }
 }

@@ -1,1 +1,1 @@
-export HexCell from './hex-cell'
+export HexCell from './hex-cell';
