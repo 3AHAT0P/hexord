@@ -7,13 +7,14 @@ export default class StaticObjectsLayer extends AbstractLayer {
   }
 
   connectObject(obj) {
+    obj.ctx = this.ctx;
     this.objects.push(obj);
   }
 
   render() {
     for (const obj of this.objects) {
       if (obj.needRender) {
-        obj.render(this.ctx);
+        obj.render();
       }
     }
   }

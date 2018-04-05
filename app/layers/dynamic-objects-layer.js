@@ -6,10 +6,12 @@ export default class DynamicObjectsLayer extends AbstractLayer {
     this.objects = [];
   }
   connectObject(obj) {
+    obj.ctx = this.ctx;
     this.objects.push(obj);
   }
   disconnectObject(obj) {
     this.objects.splice(this.objects.indexOf(obj));
+    obj.ctx = null;
   }
   render() {
     this.clear();

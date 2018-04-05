@@ -1,4 +1,4 @@
-import { next, nextFrame } from '../../lib/utils';
+import { next, nextFrame, randomBetween } from '../../lib/utils';
 import { bind } from '../../lib/decorators';
 
 import { AbstractScene } from './';
@@ -10,20 +10,21 @@ import {
   InputLayer,
 } from '../layers';
 
-import { Wall } from '../static-objects';
+import { Wall, Box } from '../static-objects';
 import { Player, AiActor } from '../dynamic-objects';
 
 export default class MainScene extends AbstractScene {
   layers = new Map();
   width = 640;
-  height = 320;
+  height = 480;
 
   get backgroundSprite() {
-    const canvas = new OffscreenCanvas(this.width, this.height);
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'hsla(28, 87%, 67%, 1)';
-    ctx.fillRect(0, 0, this.width, this.height);
-    return canvas.transferToImageBitmap();
+    // const canvas = new OffscreenCanvas(this.width, this.height);
+    // const ctx = canvas.getContext('2d');
+    // ctx.fillStyle = 'hsla(28, 87%, 67%, 1)';
+    // ctx.fillRect(0, 0, this.width, this.height);
+    // return canvas.transferToImageBitmap();
+    return this.loadSprite('/assets/images/grass.png');
   }
 
   async loadSprite(url) {
@@ -41,6 +42,18 @@ export default class MainScene extends AbstractScene {
       this._wallSprite = this.loadSprite('/assets/images/stone.png');
     }
     return this._wallSprite;
+  }
+
+  get boxSprite() {
+    if (this._boxSprite == null) {
+      // const canvas = new OffscreenCanvas(20, 20);
+      // const ctx = canvas.getContext('2d');
+      // ctx.fillStyle = 'red';
+      // ctx.fillRect(0, 0, 20, 20);
+      // this._boxSprite = canvas.transferToImageBitmap();
+      this._boxSprite = this.loadSprite('/assets/images/box.png');
+    }
+    return this._boxSprite;
   }
 
   get playerSprite() {
@@ -112,7 +125,7 @@ export default class MainScene extends AbstractScene {
 
   async _initLayers() {
     this.notReadyLayerCount = 0;
-    this._createLayer('Background', BackgroundLayer, this, this.width, this.height, this.backgroundSprite);
+    this._createLayer('Background', BackgroundLayer, this, this.width, this.height, await this.backgroundSprite);
     this._createLayer('Grid', GridLayer, this, this.width, this.height, {
       width: 30,
       border: 1,
@@ -161,7 +174,7 @@ export default class MainScene extends AbstractScene {
       clear: await this.buildClearSprite(await this.aiActorSprite)
     };
 
-    const firstLevelMap = await this.getLevelMap();
+    const firstLevelMap = await this.getLevelMap(1);
 
     for (let i = 0; i < firstLevelMap.length; ++i) {
       const row = firstLevelMap[i];
@@ -177,59 +190,33 @@ export default class MainScene extends AbstractScene {
         }
       }
     }
-
-    // for (let i = 0; i < 10; ++i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,9)));
-    // }
-    // for (let i = 10; i < 19; ++i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(9,i)));
-    // }
-    // for (let i = 9; i > 0; --i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,18)));
-    // }
-    // for (let i = 17; i > 10; --i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(1,i)));
-    // }
-    // for (let i = 2; i < 8; ++i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,11)));
-    // }
-    // for (let i = 11; i < 17; ++i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(7,i)));
-    // }
-    // for (let i = 6; i > 2; --i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(i,16)));
-    // }
-    // for (let i = 15; i > 12; --i) {
-    //   staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(3,i)));
-    // }
-    //
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(4, 13)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(4, 14)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(4, 15)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(5, 13)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(5, 14)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(5, 15)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 12)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 13)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 14)));
-    // staticLayer.connectObject(new Wall(this, {x: 'center', y: 'center'}, wallSpritesHash, gridLayer.getCell(6, 15)));
-
-    // const player = new Player(this, {x: 'center', y: 'center'}, playerSpritesHash, gridLayer.getCell(5,5));
-    // dynamicLayer.connectObject(player);
-    //
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(5,12)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(2,16)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(7,17)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(6,10)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(7,10)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(2,10)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(4,4)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(4,5)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(6,4)));
-    // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(6,5)));
   }
 
-  async _render() {
+  dropBox() {
+    this.box = null;
+  }
+
+  async _render(buildBox = true) {
+    if (buildBox && this.box == null) {
+      const gridLayer = this.layers.get('Grid');
+      const staticLayer = this.layers.get('StaticObjects');
+      let rowId = randomBetween(0, gridLayer.rowCount);
+      let columnId = randomBetween(0, gridLayer.columnCount);
+      let cell = gridLayer.getCell(rowId, columnId);
+
+      while (!cell.isEmpty) {
+        rowId = randomBetween(0, gridLayer.rowCount);
+        columnId = randomBetween(0, gridLayer.columnCount);
+        cell = gridLayer.getCell(rowId, columnId);
+      }
+
+      const boxSpritesHash = {
+        main: await this.boxSprite,
+        clear: await this.buildClearSprite(await this.boxSprite)
+      };
+
+      staticLayer.connectObject(this.box = new Box(this, {x: 'center', y: 'center'}, boxSpritesHash, gridLayer.getCell(rowId,columnId)));
+    }
     for (const [, layer] of this.layers) {
       layer.render();
     }
@@ -240,12 +227,17 @@ export default class MainScene extends AbstractScene {
     next(this._init);
   }
 
-  run() {
-    this._render();
+  async run() {
+    this.rendering = true;
+    await this._render(false);
+    this.rendering = false;
   }
 
-  update() {
-    this._render();
+  async update() {
+    if (this.rendering) return;
+    this.rendering = true;
+    await this._render();
+    this.rendering = false;
   }
 
   findPath(from, to) {

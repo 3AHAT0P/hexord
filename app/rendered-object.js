@@ -3,6 +3,16 @@ import { bind } from '../lib/decorators';
 
 export default class RenderedObject {
   needRender = true;
+  needClear = false;
+  canInteract = new Map();
+
+  get ctx() {
+    return this._ctx;
+  }
+
+  set ctx(ctx) {
+    return this._ctx = ctx;
+  }
 
   @bind
   _init() {}
@@ -65,12 +75,31 @@ export default class RenderedObject {
     next(this._init);
   }
 
-  render(ctx) {
-    this.draw(ctx, ...this._buildCoordinates(this.cell), this.sprites.main);
+  interact(actionName, actionType) {
+
+  }
+
+  render() {
+    if (this.needClear) {
+      this.clear(...this._buildCoordinates(this.cell));
+      this.needClear = false;
+      this.needRender = false;
+      return;
+    }
+    this.draw(...this._buildCoordinates(this.cell), this.sprites.main);
     this.needRender = false;
   }
 
-  draw(ctx, x, y, sprite) {
-    ctx.drawImage(sprite, x, y);
+  draw(x, y, sprite) {
+    this.ctx.drawImage(sprite, x, y);
+  }
+
+  clear({x, y} = {}) {
+    if (x == null || y == null) {
+      [x, y] = this._buildCoordinates(this.cell);
+    }
+    this.ctx.globalCompositeOperation = 'destination-out';
+    this.draw(x-2, y-2, this.sprites.clear || this.sprites.main);
+    this.ctx.globalCompositeOperation = 'source-over';
   }
 }
