@@ -7,7 +7,6 @@ export default class Box extends RenderedObject {
 
   constructor(scene, {x, y}, sprites, cell) {
     super(scene, {x, y}, sprites, cell);
-    this.cell.enter(this);
   }
 
   interact(actionName, actionType) {
@@ -20,7 +19,6 @@ export default class Box extends RenderedObject {
     this.scene.dropBox();
     this.cell.leave(this);
     this.clear();
-    this.needClear = true;
-    this.needRender = true;
+    this.needRender = false;
   }
 }

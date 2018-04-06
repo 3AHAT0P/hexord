@@ -71,6 +71,7 @@ export default class RenderedObject {
     this.width = sprites.main.width;
     this.height = sprites.main.height;
     this.cell = cell;
+    this.cell.enter(this);
 
     next(this._init);
   }
@@ -80,12 +81,7 @@ export default class RenderedObject {
   }
 
   render() {
-    if (this.needClear) {
-      this.clear(...this._buildCoordinates(this.cell));
-      this.needClear = false;
-      this.needRender = false;
-      return;
-    }
+    if (!this.needRender) return;
     this.draw(...this._buildCoordinates(this.cell), this.sprites.main);
     this.needRender = false;
   }

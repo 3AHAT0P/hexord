@@ -1,13 +1,26 @@
 import { bind } from '../../lib/decorators';
 
+import { HexPathPoint } from '../points';
+
 export default class HexCell {
   layers = new Map();
   slot = null;
   isHovered = false;
   needRender = true;
 
+  get id() {
+    return `${this.rowId}:${this.columnId}`;
+  }
+
   get isEmpty() {
     return this.slot == null;
+  }
+
+  get cubeCoords() {
+    const x = this.columnId - (this.rowId + (this.rowId & 1)) / 2;
+    const z = this.rowId;
+    const y = -1 * (x + z);
+    return {x, y, z};
   }
 
   get sprite() {
@@ -32,6 +45,14 @@ export default class HexCell {
     this.addLayer('background', false, this.renderBackground);
     this.addLayer('border', false, this.renderBorder);
     this.addLayer('id', false, this.renderId);
+  }
+
+  isEqualTo(cell) {
+    return this.rowId === cell.rowId && this.columnId === cell.columnId;
+  }
+
+  buildPathPoint(prevPoint = null) {
+    return new HexPathPoint(this, this.moveCost, prevPoint);
   }
 
   enter(object) {

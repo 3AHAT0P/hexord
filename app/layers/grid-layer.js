@@ -3,135 +3,25 @@ import { bind } from '../../lib/decorators';
 
 import { AbstractLayer } from './';
 import { HexCell } from '../cells';
-
-class Point {
-  rowId = null;
-  columnId = null;
-  prev = null;
-  cost = 1;
-  g = 0;
-  h = null;
-  f = null;
-
-  get id() {
-    return `${this.rowId}:${this.columnId}`;
-  }
-
-  constructor(rowId, columnId, prev = null, getCell) {
-    this.rowId = rowId;
-    this.columnId = columnId;
-    this.prev = prev;
-    if (prev != null) this.calculateDistance(prev);
-    this.cell = getCell(rowId, columnId);
-  }
-
-  isEqualTo(point) {
-    return this.rowId === point.rowId && this.columnId === point.columnId;
-  }
-
-  buildPath(path = []) {
-    if (this.prev == null) return path;
-    this.prev.buildPath(path);
-    path.push(this.cell);
-    return path;
-  }
-
-  calculateDistance(point) {
-    this.g = point.g + this.cost;
-  }
-
-  updateEstimation() {
-    this.f = this.g + this.h;
-  }
-
-  estimateHeuristicDistanceTo(cell) {
-    // ????
-
-    // very bad
-    // this.h = Math.abs(this.rowId - cell.rowId) + Math.abs(this.columnId - cell.columnId)
-
-    // bad
-    // let currentCell = this.getCell(this.rowId, this.columnId)
-    // let toCell = this.getCell(cell.rowId, cell.columnId)
-    // if (currentCell == null || toCell == null) debugger
-    // let currentX = this.getCell(this.rowId, this.columnId).getPositionX('center')
-    // let currentY = this.getCell(this.rowId, this.columnId).getPositionY('center')
-    // let toX = this.getCell(cell.rowId, cell.columnId).getPositionX('center')
-    // let toY = this.getCell(cell.rowId, cell.columnId).getPositionY('center')
-    // this.h = Math.abs(currentX - toX) +  Math.abs(currentY - toY)
-
-
-    // not tested
-    // let fromCell = this.getCell(this.rowId, this.columnId)
-    // let toCell = this.getCell(cell.rowId, cell.columnId)
-    // let res = 0
-    // let finishPointX = toCell.getPositionX('center')
-    // let finishPointY = toCell.getPositionY('center')
-    // while (fromCell !== toCell) {
-    //   let x = finishPointX - fromCell.getPositionX('center')
-    //   let y = finishPointY - fromCell.getPositionY('center')
-    //   if (x >= 0 && y >= 0) {
-    //     if (y <= x/Math.sqrt(3)) {
-    //       --pathX
-    //       ++res
-    //     } else if (y > x/Math.sqrt(3)) {
-    //       if ((finishY - pathY)%2 === 0) --pathX
-    //       --pathY
-    //       ++res
-    //     }
-    //   } else if (x <= 0 && y >= 0) {
-    //     if (y >= -x/Math.sqrt(3)) {
-    //       if ((finishY - pathY)%2 === 1) ++pathX
-    //       --pathY
-    //       ++res
-    //     } else if (y < -x/Math.sqrt(3)) {
-    //       ++pathX
-    //       ++res
-    //     }
-    //   } else if (x <= 0 && y <= 0) {
-    //     if (-y <= -x/Math.sqrt(3)) {
-    //       ++pathX
-    //       ++res
-    //     } else if (-y > -x/Math.sqrt(3)) {
-    //       if ((finishY - pathY)%2 === 1) ++pathX
-    //       ++pathY
-    //       ++res
-    //     }
-    //   } else if (x >= 0 && y <= 0) {
-    //     if (-y >= x/Math.sqrt(3)) {
-    //       if ((finishY - pathY)%2 === 0) --pathX
-    //       ++pathY
-    //       ++res
-    //     } else if (-y < x/Math.sqrt(3)) {
-    //       --pathX
-    //       ++res
-    //     }
-    //   }
-    // }
-    // this.h = res
-
-    // WTF How it's work???
-    this.h = 1;
-    this.updateEstimation();
-  }
-}
+import { HexPoint } from '../points';
 
 export default class GridLayer extends AbstractLayer {
+  hoveredCell = null;
+  activeCell = null;
+  firstRender = true;
+  cells = [];
+
   constructor(scene, width, height, cellOptions) {
     super(scene, width, height);
     this.cellOptions = cellOptions;
     this.cellOptions.edgeLength = Math.sqrt(this.cellOptions.width*this.cellOptions.width/3);
     this.cellOptions.height = this.cellOptions.edgeLength*2 + 2*this.cellOptions.border;
 
-    this.hoveredCell = null;
-    this.activeCell = null;
     this.rowHeight = this.cellOptions.edgeLength*3/2;
     this.oddRowOffset = -this.cellOptions.width/2;
     this.rowCount = Math.trunc(height/this.rowHeight) - 4;
     this.columnCount = Math.trunc(width/this.cellOptions.width) - 1;
-    this.cells = [];
     this.generateCells();
-    this.firstRender = true;
     this.scene.on('mousemove', this.onMouseMove);
     this.scene.on('mousedown', this.onMouseDown);
   }
@@ -206,40 +96,28 @@ export default class GridLayer extends AbstractLayer {
   }
 
   getNearblyCells(cell, type = 'all') {
-    return this.getNeighbor(cell).reduce(
-      (result, [neighborRowId, neighborColumnId]) => {
-        const cell = this.getCell(neighborRowId, neighborColumnId);
-        if (type === 'all') result.push(cell);
-        else if (type === 'empty' && cell.isEmpty) result.push(cell);
-        else if (type === 'notempty' && !cell.isEmpty) result.push(cell);
-        return result;
-      },
-      []
-    );
+    const cells = this.getNeighbor(cell);
+    if (type === 'all') return cells;
+    if (type === 'empty') return cells.filter((cell) => cell.isEmpty);
+    if (type === 'notempty') return cells.filter((cell) => !cell.isEmpty);
   }
 
-  getNeighbor(point) {
-    let res = [];
-    let prevRowId = point.rowId - 1;
-    let nextRowId = point.rowId + 1;
-    let prevColumnId = point.columnId - point.rowId%2;
-    let nextColumnId = point.columnId + Number(point.rowId%2 === 0);
+  getNeighbor(cell) {
+    const res = [];
+    const prevRowId = cell.rowId - 1;
+    const nextRowId = cell.rowId + 1;
+    const prevColumnId = cell.columnId - cell.rowId%2;
+    const nextColumnId = cell.columnId + Number(cell.rowId%2 === 0);
     if (prevRowId >= 0) {
-      if (prevColumnId >= 0)
-        res.push([prevRowId, prevColumnId]);
-      if (nextColumnId < this.columnCount)
-        res.push([prevRowId, nextColumnId]);
+      if (prevColumnId >= 0) res.push(this.getCell(prevRowId, prevColumnId));
+      if (nextColumnId < this.columnCount) res.push(this.getCell(prevRowId, nextColumnId));
     }
-    if (point.columnId + 1 < this.columnCount)
-      res.push([point.rowId,     point.columnId + 1]);
+    if (cell.columnId + 1 < this.columnCount) res.push(this.getCell(cell.rowId, cell.columnId + 1));
     if (nextRowId < this.rowCount) {
-      if (nextColumnId < this.columnCount)
-        res.push([nextRowId, nextColumnId]);
-      if (prevColumnId >= 0)
-        res.push([nextRowId, prevColumnId]);
+      if (nextColumnId < this.columnCount) res.push(this.getCell(nextRowId, nextColumnId));
+      if (prevColumnId >= 0) res.push(this.getCell(nextRowId, prevColumnId));
     }
-    if (point.columnId - 1 >= 0)
-      res.push([point.rowId,     point.columnId - 1]);
+    if (cell.columnId - 1 >= 0) res.push(this.getCell(cell.rowId, cell.columnId - 1));
     return res;
   }
 
@@ -247,25 +125,23 @@ export default class GridLayer extends AbstractLayer {
     const openedPathPoints = new MappedPriorityQueue();
     const closedPathPoints = new MappedPriorityQueue();
 
-    let pathPoint = new Point(fromCell.rowId, fromCell.columnId, null, this.getCell);
+    let pathPoint = fromCell.buildPathPoint();
     pathPoint.estimateHeuristicDistanceTo(toCell);
     openedPathPoints.add(pathPoint.f, pathPoint);
 
     while ((pathPoint = openedPathPoints.getMin()) != null) {
-      if (pathPoint.isEqualTo(toCell)) return pathPoint.buildPath();
+      if (pathPoint.cell.isEqualTo(toCell)) return pathPoint.buildPath();
 
-      for (const [neighborRowId, neighborColumnId] of this.getNeighbor(pathPoint)) {
-        if (!this.getCell(neighborRowId, neighborColumnId).isEmpty) {
-          if (neighborRowId === toCell.rowId && neighborColumnId === toCell.columnId) {
-            const endPoint = new Point(neighborRowId, neighborColumnId, pathPoint, this.getCell);
-            return endPoint.buildPath();
-          }
+      for (const neighborCell of this.getNeighbor(pathPoint.cell)) {
+        if (!neighborCell.isEmpty) {
+          if (neighborCell.isEqualTo(toCell))
+            return neighborCell.buildPathPoint(pathPoint).buildPath();
           continue;
         }
-        const neighborId = `${neighborRowId}:${neighborColumnId}`;
-        let neighborPoint = openedPathPoints.getById(neighborId) || closedPathPoints.getById(neighborId);
+
+        let neighborPoint = openedPathPoints.getById(neighborCell.id) || closedPathPoints.getById(neighborCell.id);
         if (neighborPoint == null) {
-          neighborPoint = new Point(neighborRowId, neighborColumnId, pathPoint, this.getCell);
+          neighborPoint = neighborCell.buildPathPoint(pathPoint);
           neighborPoint.estimateHeuristicDistanceTo(toCell);
         } else {
           if (neighborPoint.g <= pathPoint.g + pathPoint.cost) continue;
@@ -273,8 +149,8 @@ export default class GridLayer extends AbstractLayer {
           neighborPoint.updateEstimation();
         }
 
-        if (closedPathPoints.has(neighborId)) closedPathPoints.removeById(neighborId);
-        if (!openedPathPoints.has(neighborId)) openedPathPoints.add(neighborPoint.f, neighborPoint);
+        if (closedPathPoints.has(neighborPoint.id)) closedPathPoints.removeById(neighborPoint.id);
+        if (!openedPathPoints.has(neighborPoint.id)) openedPathPoints.add(neighborPoint.f, neighborPoint);
       }
       closedPathPoints.add(pathPoint.f, pathPoint);
     }

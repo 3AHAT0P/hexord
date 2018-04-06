@@ -114,6 +114,7 @@ export default class MainScene extends AbstractScene {
     nextFrame(this._applyStyles);
     await this._initLayers();
     await this._prerender();
+    this.emit('ready');
   }
 
   @bind
@@ -124,34 +125,29 @@ export default class MainScene extends AbstractScene {
   }
 
   async _initLayers() {
-    this.notReadyLayerCount = 0;
-    this._createLayer('Background', BackgroundLayer, this, this.width, this.height, await this.backgroundSprite);
-    this._createLayer('Grid', GridLayer, this, this.width, this.height, {
+    await this._createLayer('Background', BackgroundLayer, this, this.width, this.height, await this.backgroundSprite);
+    await this._createLayer('Grid', GridLayer, this, this.width, this.height, {
       width: 30,
       border: 1,
       borderColor: 'hsla(0, 0%, 100%, .2)',
       hoverColor: 'hsla(0, 0%, 0%, .1)',
       clearColor: 'hsla(0, 0%, 100%, 1)'
     });
-    this._createLayer('StaticObjects', StaticObjectsLayer, this, this.width, this.height);
-    this._createLayer('DynamicObjects', DynamicObjectsLayer, this, this.width, this.height);
-    this._createLayer('Input', InputLayer, this, this.width, this.height);
-  }
+    await this._createLayer('StaticObjects', StaticObjectsLayer, this, this.width, this.height);
+    await this._createLayer('DynamicObjects', DynamicObjectsLayer, this, this.width, this.height);
+    await this._createLayer('Input', InputLayer, this, this.width, this.height);
 
-  async _createLayer(key, Class, ...args) {
-    ++this.notReadyLayerCount;
-    const layer = new Class(...args);
-    this.layers.set(key, layer);
-    layer.on('ready', this._layerReady.bind(this));
-  }
-
-  _layerReady() {
-    if (--this.notReadyLayerCount === 0) {
-      for (const [, layer] of this.layers) {
-        this.append(layer.element);
-      }
-      this.emit('ready');
+    for (const [, layer] of this.layers) {
+      this.append(layer.element);
     }
+  }
+
+  _createLayer(key, Class, ...args) {
+    return new Promise((resolve) => {
+      const layer = new Class(...args);
+      this.layers.set(key, layer);
+      layer.on('ready', resolve);
+    });
   }
 
   async _prerender() {
