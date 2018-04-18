@@ -36,6 +36,7 @@ export default class AbsctractDynamicObject extends RenderedObject {
   @bind
   move(newCell) {
     if (this.__moveLock) return;
+    if (!this.scene.canAction) return;
     if (this.canInteractWith(newCell.slot, 'range')) {
       this.interactWith(newCell.slot, 'range');
       return;

@@ -5,6 +5,11 @@ import { MainScene } from './scenes';
 
 MainScene._register();
 
+const TURN_PHASES = [
+  'direct',
+  'review'
+];
+
 export default class GameController {
   gameIsStarted = false;
 
@@ -35,6 +40,7 @@ export default class GameController {
   runScene() {
     if (this.gameIsStarted && this.activeSceneIsReady) {
       this.activeScene.run();
+      next(this.turn);
       nextFrame(this.updateScene);
     }
   }
@@ -43,6 +49,14 @@ export default class GameController {
   updateScene() {
     this.activeScene.update();
     nextFrame(this.updateScene);
+  }
+
+  @bind
+  async turn() {
+    this.activeScene.startTurn();
+    await new Promise((resolve) => this.activeScene.once('endTurn', resolve));
+    await this.activeScene.reviewTurn();
+    next(this.turn);
   }
 
   start() {

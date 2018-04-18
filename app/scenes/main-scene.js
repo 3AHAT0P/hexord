@@ -18,6 +18,8 @@ export default class MainScene extends AbstractScene {
   width = 640;
   height = 480;
 
+  canAction = false;
+
   get backgroundSprite() {
     // const canvas = new OffscreenCanvas(this.width, this.height);
     // const ctx = canvas.getContext('2d');
@@ -114,12 +116,14 @@ export default class MainScene extends AbstractScene {
     nextFrame(this._applyStyles);
     await this._initLayers();
     await this._prerender();
+    await this._initInterface();
     this.emit('ready');
   }
 
   @bind
   _applyStyles() {
     this.style.position = 'relative';
+    this.style.display = 'flex';
     this.style.width = `${this.width}px`;
     this.style.height = `${this.height}px`;
   }
@@ -188,6 +192,18 @@ export default class MainScene extends AbstractScene {
     }
   }
 
+  async _initInterface() {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.style.position = 'absolute';
+    button.style.right = '16px';
+    button.style.bottom = '16px';
+    button.style.padding = '4px 16px';
+    button.innerText = 'End Turn';
+    this.append(button);
+    button.addEventListener('click', this.endTurn);
+  }
+
   dropBox() {
     this.box = null;
   }
@@ -247,4 +263,19 @@ export default class MainScene extends AbstractScene {
   getNearblyEmptyCells(cell) {
     return this.layers.get('Grid').getNearblyCells(cell, 'empty');
   }
+
+  startTurn() {
+    this.canAction = true;
+  }
+
+  @bind
+  endTurn() {
+    this.canAction = false;
+    this.emit('endTurn');
+  }
+
+  async reviewTurn() {
+    return new Promise((resolve) => setTimeout(resolve, 5000));
+  }
+
 }
