@@ -1,8 +1,18 @@
 import { stringAttr, numberAttr } from '../../lib/attrs';
+import { inherit, inheritIn } from '../../lib/decorators';
 
 import { AbstractModel } from './';
 
 export default class ActionModel extends AbstractModel {
+
+  @inherit(Object, 'attributes')
+  _meta = {
+    @inheritIn()
+    attributes: {}
+  };
+
+  _data = {};
+
   @stringAttr()
   turnId = null;
 
