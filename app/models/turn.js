@@ -1,7 +1,7 @@
 import { hasManyRelation } from '../../lib/relations';
 import { inherit, inheritIn } from '../../lib/decorators';
 
-import { AbstractModel, ActionModel } from './';
+import AbstractModel from './abstract';
 
 export default class TurnModel extends AbstractModel {
 
@@ -13,7 +13,7 @@ export default class TurnModel extends AbstractModel {
 
   _data = {};
 
-  @hasManyRelation(ActionModel, 'turnId')
+  @hasManyRelation('ActionModel', 'turnId')
   actions = [];
 
   addAction() {

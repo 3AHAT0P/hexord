@@ -29,6 +29,7 @@ export default class AbstractModel {
   @bind
   async deserialize(data) {
     for (const [key, {deserialize}] of entries(this._meta.attributes)) {
+      if (deserialize == null) continue;
       if (key === 'id' && data.id == null) continue;
       this[key] = this._data[key] = await deserialize(data[key], this._meta.attributes[key], this.id);
     }

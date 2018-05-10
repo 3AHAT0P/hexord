@@ -186,7 +186,7 @@ export default class MainScene extends AbstractScene {
           const player = new Player(this, {x: 'center', y: 'center'}, playerSpritesHash, gridLayer.getCell(i,j));
           dynamicLayer.connectObject(player);
         } else if (cell === 'a') {
-          dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(i, j)));
+          // dynamicLayer.connectObject(new AiActor(this, {x: 'center', y: 'center'}, wolfSpritesHash, gridLayer.getCell(i, j)));
         }
       }
     }

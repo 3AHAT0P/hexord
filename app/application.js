@@ -5,6 +5,7 @@ import { bind } from '../lib/decorators';
 import { GameController } from './';
 import {
   ActionStore,
+  SubjectStore,
   PlayerStore,
   TurnStore,
   WolfStore,
@@ -26,6 +27,7 @@ export default class Application {
 
   _initStores() {
     this.services.set('ActionStore', new ActionStore());
+    this.services.set('SubjectStore', new SubjectStore());
     this.services.set('PlayerStore', new PlayerStore());
     this.services.set('TurnStore', new TurnStore());
     this.services.set('WolfStore', new WolfStore());
