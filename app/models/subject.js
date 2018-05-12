@@ -34,15 +34,24 @@ export default class SubjectModel extends AbstractModel {
   @numberAttr()
   luck = 0;
 
-  get hitPoints() {
+  @numberAttr()
+  hitPointNumber = 0;
+
+  @numberAttr()
+  actionPointNumber = 0;
+
+  @numberAttr()
+  damage = 0;
+
+  get maxHitPointNumber() {
     return this.constitution * 3;
   }
 
-  get actionPoints() {
+  get maxActionPointNumber() {
     return this.dexterity + 10;
   }
 
-  get damage() {
+  get maxDamage() {
     return this.strength;
   }
 }
