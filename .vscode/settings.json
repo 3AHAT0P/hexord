@@ -1,6 +1,6 @@
 {
-    "eslint.options": {
-        "configFile": ".eslintrc.json"
-    },
+    "eslint.enable": false,
+    "tslint.enable": true,
+    "tslint.configFile": ".tslintrc.json",
     "javascript.validate.enable": false,
 }
