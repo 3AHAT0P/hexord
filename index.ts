@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 // import { Application } from './app';
 // import { inject } from './lib/utils';
 
@@ -30,5 +32,3 @@
 //   //
 //   // console.log(turn, await turn.actions);
 // })();
-
-console.log('hello')

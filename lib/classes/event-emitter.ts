@@ -1,13 +1,5 @@
+import { nextSync } from "../";
 import { ExtendedArray } from "./";
-
-const wait = async (time) => {
-  await new Promise((resolve) => setTimeout(resolve, time));
-};
-
-const next = async (cb) => {
-  await wait(1);
-  await cb();
-};
 
 export default class EventEmitter {
   protected events: Map<string, ExtendedArray> = new Map<string, ExtendedArray>();
@@ -29,7 +21,7 @@ export default class EventEmitter {
     if (listeners == null) return this;
     for (let i = 0; i < listeners.length; ++i) {
       const [listener, once] = listeners[i];
-      next(listener.bind(null, ...data));
+      nextSync(listener.bind(null, ...data));
       if (once) listeners.splice(i--, 1);
     }
     return this;
@@ -41,7 +33,7 @@ export default class EventEmitter {
     const promises = [];
     for (let i = 0; i < listeners.length; ++i) {
       const [listener, once] = listeners[i];
-      promises.push(next(listener.bind(null, ...data)));
+      promises.push(nextSync(listener.bind(null, ...data)));
       if (once) listeners.splice(i--, 1);
     }
     await Promise.all(promises);
