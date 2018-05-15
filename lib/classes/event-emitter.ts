@@ -1,4 +1,5 @@
 import { nextSync } from "../";
+
 import { ExtendedArray } from "./";
 
 export default class EventEmitter {

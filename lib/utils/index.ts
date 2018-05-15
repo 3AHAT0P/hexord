@@ -1,4 +1,4 @@
-export { default as UUID } from "./uuid";
+export { default as uuid } from "./uuid";
 export { default as updateProtoMap } from "./update-proto-map";
 export { default as inject } from "./inject";
 export { default as deferred } from "./deferred";
