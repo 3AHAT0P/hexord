@@ -8,12 +8,17 @@
     "inlineSourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "pretty": true
+    "pretty": true,
+    "typeRoots": [
+      "./typings",
+      "./node_modules/@types"
+    ]
   },
   "include": [
     "./index.ts",
     "app/**/*",
-    "lib/**/*"
+    "lib/**/*",
+    "typings/**/*"
   ],
   "exclude": [
     "node_modules",
