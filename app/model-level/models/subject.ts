@@ -7,6 +7,9 @@ export default class SubjectModel extends AbstractModel {
   protected _data: IHash = {};
 
   @stringAttr()
+  public polymorphicType: string = null; // 'Wolf' || 'Player'
+
+  @stringAttr()
   public name: string = null;
 
   @numberAttr()

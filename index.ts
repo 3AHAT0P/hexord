@@ -1,20 +1,22 @@
 import "reflect-metadata";
 
-// import { Application } from './app';
-// import { inject } from './lib/utils';
+import { Application } from "./app/controller-level";
+import { inject } from "./lib";
+
+// Application.create();
 
 // (async () => {
-//   const app = new Application();
+//   const app = await Application.create();
 
-//   await app.ready;
+//   app.run();
 
-//   const actionStore = inject('ActionStore');
-//   const turnStore = inject('TurnStore');
-//   const subjectStore = inject('SubjectStore');
+//   const actionStore = inject("ActionStore");
+//   const turnStore = inject("TurnStore");
+//   const subjectStore = inject("SubjectStore");
 
 //   await subjectStore.createOne({
-//     id: '1',
-//     name: 'MyPerson',
+//     id: "1",
+//     name: "MyPerson",
 //     strength: 10,
 //     constitution: 10,
 //     dexterity: 10,
@@ -23,7 +25,7 @@ import "reflect-metadata";
 //     luck: 10,
 //   });
 
-//   window.playerId = '1';
+//   (window as any).playerId = "1";
 
 //   // await actionStore.createOne({id: '1', turnId: '1', subjectId: '1'});
 //   // await actionStore.createOne({id: '2', turnId: '1', subjectId: '1'});

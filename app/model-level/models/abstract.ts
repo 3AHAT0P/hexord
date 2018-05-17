@@ -7,6 +7,8 @@ import {
 
 export default class AbstractModel {
 
+  [key: string]: any;
+
   public static get storeName() {
     return this.name.replace("Model", "Store");
   }
@@ -48,7 +50,7 @@ export default class AbstractModel {
   public async deserialize(data: any) {
     for (const [key, meta] of AbstractModel.getAttributesMeta()) {
       if (key === "id" && data.id == null) continue;
-      (this as IHash)[key] = this._data[key] = await meta.deserialize(data[key], meta, this.id);
+      this[key] = this._data[key] = await meta.deserialize(data[key], meta, this.id);
     }
     return this;
   }
@@ -57,7 +59,7 @@ export default class AbstractModel {
   public async serialize() {
     const data: IHash = {};
     for (const [key, meta] of AbstractModel.getAttributesMeta()) {
-      data[key] = this._data[key] = await meta.serialize((this as IHash)[key], meta);
+      data[key] = this._data[key] = await meta.serialize(this[key], meta);
     }
     return data;
   }

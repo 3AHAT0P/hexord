@@ -1,15 +1,14 @@
-interface IDeferred<T> extends Promise<T> {
+interface IDeferred<T> {
   resolve: () => any;
   reject: () => any;
+  promise: Promise<T>;
 }
 
 export default <T>() => {
-  const handlers: any = {};
-  const deferred = new Promise<T>((resolve, reject) => {
-    handlers.resolve = resolve;
-    handlers.reject = reject;
-  }) as IDeferred<T>;
-  deferred.resolve = handlers.resolve;
-  deferred.reject = handlers.reject;
-  return deferred;
+  const deferred: any = {};
+  deferred.promise = new Promise<T>((resolve, reject) => {
+    deferred.resolve = resolve;
+    deferred.reject = reject;
+  });
+  return deferred as IDeferred<T>;
 };
