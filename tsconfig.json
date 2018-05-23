@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "pretty": true,
+    "outDir": "./dist/",
     "typeRoots": [
       "./typings",
       "./node_modules/@types"
@@ -16,9 +17,9 @@
   },
   "include": [
     "./index.ts",
-    "app/**/*",
-    "lib/**/*",
-    "typings/**/*"
+    "./app/**/*",
+    "./lib/**/*",
+    "./typings/**/*"
   ],
   "exclude": [
     "node_modules",

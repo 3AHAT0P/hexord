@@ -12,8 +12,8 @@
     "webpack-dev-server": "^3.1.1"
   },
   "scripts": {
-    "serve": "webpack-dev-server --mode development ./index.ts --output ./dist/index.js --module-bind ts=ts-loader",
-    "dev": "webpack --mode development ./index.ts --output ./dist/index.js",
+    "serve": "webpack-dev-server --mode development",
+    "dev": "webpack --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

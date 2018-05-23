@@ -45,6 +45,6 @@ export default class Application {
 
   @bind
   public run() {
-    this.services.get("GameController").start();
+    // this.services.get("GameController").start();
   }
 }
