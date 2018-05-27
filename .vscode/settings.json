@@ -1,4 +1,6 @@
 {
+    "editor.tabSize": 2,
+    "editor.renderWhitespace": "all",
     "eslint.enable": false,
     "tslint.enable": true,
     "tslint.configFile": ".tslintrc.json",

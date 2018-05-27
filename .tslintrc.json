@@ -23,6 +23,10 @@
       }
     ],
     "object-literal-sort-keys": ["match-declaration-order", "shorthand-first"],
+    "quotemark": [
+      true,
+      "single"
+    ],
     "member-ordering": [
       true,
       {

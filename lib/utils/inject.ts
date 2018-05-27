@@ -1,3 +1,3 @@
-export default function inject(name: string|symbol): any {
-  return (window as any)[Symbol.for("app")].services.get(name);
-}
+export default <T>(name: string|symbol): T => {
+  return (window as any)[Symbol.for('app')].services.get(name);
+};

@@ -1,6 +1,6 @@
-import { SubjectModel } from "../models";
+import { SubjectModel } from '../models';
 
-import { AbstractStore } from "./";
+import { AbstractStore } from './';
 
 export default class SubjectStore extends AbstractStore {
 
@@ -44,6 +44,6 @@ export default class SubjectStore extends AbstractStore {
   }
 
   public async updateOne(data: any, options?: any): Promise<SubjectModel> {
-    throw new Error("Not implemented!");
+    throw new Error('Not implemented!');
   }
 }

@@ -1,20 +1,19 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 
-import { Application } from "./app/controller-level";
-import { inject } from "./lib";
+import { Application } from './app/controller-level';
+import { ActionStore, TurnStore, SubjectStore } from './app/model-level/stores';
+import { inject } from './lib';
 
 (async () => {
   const app = await Application.create();
 
-  app.run();
-
-  const actionStore = inject("ActionStore");
-  const turnStore = inject("TurnStore");
-  const subjectStore = inject("SubjectStore");
+  const actionStore = inject<ActionStore>('ActionStore');
+  const turnStore = inject<TurnStore>('TurnStore');
+  const subjectStore = inject<SubjectStore>('SubjectStore');
 
   await subjectStore.createOne({
-    id: "1",
-    name: "MyPerson",
+    id: '1',
+    name: 'MyPerson',
     strength: 10,
     constitution: 10,
     dexterity: 10,
@@ -23,7 +22,9 @@ import { inject } from "./lib";
     luck: 10,
   });
 
-  (window as any).playerId = "1";
+  (window as any).playerId = '1';
+
+  app.run();
 
   // await actionStore.createOne({id: '1', turnId: '1', subjectId: '1'});
   // await actionStore.createOne({id: '2', turnId: '1', subjectId: '1'});

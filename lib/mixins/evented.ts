@@ -1,7 +1,7 @@
-import { EventEmitter, uuid } from "../";
+import { EventEmitter, uuid } from '../';
 
-const eventEmitterSymbol = Symbol("_eventEmitter");
-const eventEmitterPrefixSymbol = Symbol("_eventEmitterPrefix");
+const eventEmitterSymbol = Symbol('_eventEmitter');
+const eventEmitterPrefixSymbol = Symbol('_eventEmitterPrefix');
 
 export default (BaseClass = Object) => {
   return class EventedMixin extends BaseClass {
